@@ -31,6 +31,10 @@ No config file needed. Defaults to OpenAI `gpt-4o` with a "Curious Reader" perso
 
 ### GitHub Action
 
+**Before setup, enable these in your blog repo's Settings:**
+1. **Settings > General > Features > enable Discussions**
+2. **Settings > Actions > General > Workflow permissions > select "Read and write permissions"**
+
 Create `.github/workflows/giscus-bot.yml`:
 
 ```yaml
@@ -47,6 +51,9 @@ on:
         required: true
         type: string
 
+permissions:
+  discussions: write
+
 jobs:
   comment:
     runs-on: ubuntu-latest
@@ -54,15 +61,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: seonWKim/giscus-bot@main
         with:
-          github-token: ${{ secrets.GISCUS_BOT_GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           api-key: ${{ secrets.GISCUS_BOT_OPENAI_API_KEY }}
           blog-url: ${{ github.event.inputs.url }}
 ```
 
 - **Push trigger**: detects newly added markdown files in the commit and reads them directly from the checkout
 - **Manual trigger**: scrapes the live blog URL you provide
-- The action builds from source on each run (`npm ci && tsc`), so no pre-built artifacts are needed
-- `actions/checkout@v4` is required so the action can access your repo files (posts and config)
+- `actions/checkout@v4` is required so the action can read your posts and config
+- No build step needed in your workflow — the action handles `npm ci` and `tsc` internally
 
 ### Config File (optional)
 
@@ -119,7 +126,7 @@ labeling:
 
 | Variable | Description |
 |----------|-------------|
-| `GISCUS_BOT_GITHUB_TOKEN` | GitHub PAT with `discussions:write` |
+| `GISCUS_BOT_GITHUB_TOKEN` | GitHub PAT with `discussions:write` (CLI only) |
 | `GISCUS_BOT_OPENAI_API_KEY` | OpenAI API key |
 | `GISCUS_BOT_CLAUDE_API_KEY` | Anthropic API key (TBD) |
 | `GISCUS_BOT_OLLAMA_URL` | Ollama base URL (TBD) |
@@ -128,7 +135,7 @@ labeling:
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `github-token` | Yes | | GitHub PAT with `discussions:write` |
+| `github-token` | Yes | | GitHub token — use `${{ secrets.GITHUB_TOKEN }}` with `permissions: discussions: write` |
 | `provider` | No | `openai` | AI provider |
 | `api-key` | Yes | | API key for the provider |
 | `model` | No | `gpt-4o` | AI model |
