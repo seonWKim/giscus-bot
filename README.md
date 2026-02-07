@@ -36,7 +36,7 @@ provider:
 
 github:
   repo: "youruser/yourblog"
-  discussionCategory: "Blog Comments"
+  discussionCategory: "General"
 
 personas:
   - name: "Curious Reader"
@@ -142,7 +142,7 @@ jobs:
         with:
           github-token: ${{ secrets.GISCUS_BOT_GITHUB_TOKEN }}
           provider: openai
-          api-key: ${{ secrets.OPENAI_API_KEY }}
+          api-key: ${{ secrets.GISCUS_BOT_OPENAI_API_KEY }}
           blog-url: ${{ github.event.inputs.url }}
 ```
 
@@ -179,8 +179,8 @@ on:
 
 Add these in your repo's Settings > Secrets and variables > Actions:
 
-- `DISCUSSIONS_TOKEN` — a GitHub PAT with `discussions:write` scope
-- `OPENAI_API_KEY` — your OpenAI key (or `ANTHROPIC_API_KEY` for Claude)
+- `GISCUS_BOT_GITHUB_TOKEN` — a GitHub PAT with `discussions:write` scope
+- `GISCUS_BOT_OPENAI_API_KEY` — your OpenAI key (or `GISCUS_BOT_CLAUDE_API_KEY` for Claude)
 
 ## Configuration Reference
 
