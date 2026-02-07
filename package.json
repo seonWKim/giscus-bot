@@ -1,0 +1,46 @@
+{
+  "name": "giscus-bot",
+  "version": "0.1.0",
+  "description": "AI-powered discussion starter for blog posts using GitHub Discussions",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "giscus-bot": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "bundle:action": "ncc build dist/action.js -o dist/action-bundle"
+  },
+  "keywords": [
+    "giscus",
+    "blog",
+    "comments",
+    "ai",
+    "github-discussions"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@mozilla/readability": "^0.5.0",
+    "@octokit/graphql": "^8.2.1",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "linkedom": "^0.18.9",
+    "openai": "^4.82.0",
+    "turndown": "^7.2.0",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@types/node": "^22.13.1",
+    "@types/turndown": "^5.0.5",
+    "@vercel/ncc": "^0.38.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

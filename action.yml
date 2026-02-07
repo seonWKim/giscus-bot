@@ -1,0 +1,45 @@
+# GitHub Action metadata for giscus-bot.
+#
+# This action can be triggered two ways:
+#   1. Manually via workflow_dispatch (provide a blog-url)
+#   2. Automatically on push (detects new markdown files in content directories)
+#
+# Example workflow usage:
+#   - uses: your-org/giscus-bot@main
+#     with:
+#       github-token: ${{ secrets.GITHUB_TOKEN }}
+#       provider: openai
+#       api-key: ${{ secrets.OPENAI_API_KEY }}
+#       blog-url: https://myblog.com/new-post
+
+name: "giscus-bot"
+description: "Generate AI discussion-starter comments for blog posts on GitHub Discussions"
+
+inputs:
+  github-token:
+    description: "GitHub token with discussions:write permission"
+    required: true
+  provider:
+    description: "AI provider to use (openai|claude|ollama)"
+    required: true
+  api-key:
+    description: "API key for the AI provider"
+    required: true
+  model:
+    description: "AI model to use"
+    required: false
+    default: "gpt-4o"
+  blog-url:
+    description: "Blog post URL (for manual trigger via workflow_dispatch)"
+    required: false
+  site-url:
+    description: "Blog site base URL (overrides config site.url, used for push-trigger URL construction)"
+    required: false
+  config-path:
+    description: "Path to giscus-bot config file"
+    required: false
+    default: "giscus-bot.config.yaml"
+
+runs:
+  using: "node20"
+  main: "dist/action-bundle/index.js"

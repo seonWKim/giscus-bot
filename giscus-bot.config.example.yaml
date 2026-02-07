@@ -1,0 +1,28 @@
+provider:
+  name: openai                          # openai | claude | ollama
+  model: gpt-4o
+
+github:
+  repo: "user/blog"
+  discussionCategory: "Blog Comments"
+
+# Site config — required for push-trigger mode (auto-detecting new posts).
+# Not needed if you only use manual workflow_dispatch triggers.
+site:
+  url: "https://myblog.com"              # your blog's base URL (no trailing slash)
+  framework: jekyll                       # jekyll | hugo | custom
+  # pathPattern: "/blog/{year}/{slug}/"   # only needed for framework: custom
+
+personas:
+  - name: "Curious Reader"
+    description: "Asks thoughtful questions about the content"
+    tone: "friendly, inquisitive"
+  - name: "Devil's Advocate"
+    description: "Offers respectful counterpoints"
+    tone: "constructive, analytical"
+
+limits:
+  maxPersonas: 2
+
+labeling:
+  prefix: "🤖 **AI-Generated Comment**"
