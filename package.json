@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "bundle:action": "ncc build dist/action.js -o dist/action-bundle"
+    "bundle:action": "tsc && ncc build dist/action.js -o action-bundle"
   },
   "keywords": [
     "giscus",

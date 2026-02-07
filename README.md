@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: seonWKim/giscus-bot@main
+      - uses: seonWKim/gitcus-bot@main
         with:
           github-token: ${{ secrets.GISCUS_BOT_GITHUB_TOKEN }}
           provider: openai

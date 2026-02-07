@@ -6,9 +6,9 @@
  *   1. Manual trigger (workflow_dispatch): User provides a blog-url input.
  *      The URL is scraped and comments are generated from the live page.
  *
- *   2. Push trigger: Detects new/modified markdown files from the commit,
+ *   2. Push trigger: Detects newly added markdown files from the commit,
  *      reads them directly from the checkout, and generates comments from
- *      the file content. No URL mapping or framework config needed.
+ *      the file content.
  */
 
 import * as core from "@actions/core";
@@ -17,7 +17,8 @@ import { loadConfig } from "./config/loader.js";
 import { createProvider } from "./providers/index.js";
 import { generate } from "./core/generator.js";
 import { extractPostFromFile } from "./core/scraper.js";
-import type { ProviderName } from "./config/types.js";
+import type { GiscusBotConfig, ProviderName } from "./config/types.js";
+import { existsSync } from "node:fs";
 
 /**
  * Map provider names to their corresponding environment variable names.
@@ -28,6 +29,23 @@ const PROVIDER_ENV_MAP: Record<string, string> = {
   openai: "GISCUS_BOT_OPENAI_API_KEY",
   claude: "GISCUS_BOT_CLAUDE_API_KEY",
 };
+
+/** Default config when no config file is found in the user's repo */
+function defaultConfig(): GiscusBotConfig {
+  return {
+    provider: { name: "openai", model: "gpt-4o" },
+    github: { repo: "", discussionCategory: "General" },
+    personas: [
+      {
+        name: "Curious Reader",
+        description: "Asks thoughtful questions about the content",
+        tone: "friendly, inquisitive",
+      },
+    ],
+    limits: { maxPersonas: 1 },
+    labeling: { prefix: "🤖 **AI-Generated Comment**" },
+  };
+}
 
 async function run(): Promise<void> {
   try {
@@ -45,18 +63,27 @@ async function run(): Promise<void> {
       process.env[PROVIDER_ENV_MAP[providerName]] = apiKey;
     }
 
-    // Load config from the repo's config file
-    const config = loadConfig(configPath);
+    // Load config file if it exists, otherwise use defaults
+    let config: GiscusBotConfig;
+    if (existsSync(configPath)) {
+      config = loadConfig(configPath);
+    } else {
+      config = defaultConfig();
+    }
 
     // Override provider settings from action inputs
     config.provider.name = providerName as ProviderName;
     config.provider.model = model;
 
+    // Infer repo from GITHUB_REPOSITORY env var if not set in config
+    if (!config.github.repo && process.env.GITHUB_REPOSITORY) {
+      config.github.repo = process.env.GITHUB_REPOSITORY;
+    }
+
     const provider = createProvider(config.provider);
 
     if (blogUrl) {
       // ── Manual trigger (workflow_dispatch) ──
-      // Scrape the live URL and generate comments
       core.info(`Processing URL: ${blogUrl}`);
 
       const result = await generate(blogUrl, config, provider);
@@ -69,9 +96,7 @@ async function run(): Promise<void> {
       core.setOutput("comments-generated", "1");
     } else {
       // ── Push trigger ──
-      // Detect newly added markdown files from the push commits.
-      // We intentionally skip modified files to avoid duplicate comments
-      // on posts that are just being edited.
+      // Only process newly added files (skip modified to avoid duplicates)
       const payload = github.context.payload;
       const files: string[] = [];
 
@@ -80,7 +105,6 @@ async function run(): Promise<void> {
           const commitFiles = (commit.added ?? []) as string[];
 
           for (const file of commitFiles) {
-            // Only process markdown files in common blog content directories
             if (
               file.match(/\.(md|mdx)$/) &&
               file.match(/^(content|_posts|src\/posts|posts|blog)\//)
@@ -96,12 +120,9 @@ async function run(): Promise<void> {
         return;
       }
 
-      // Read each file directly from the checkout and generate comments
       for (const file of files) {
         core.info(`Processing file: ${file}`);
 
-        // Extract post content from the local markdown file
-        // (reads front matter for title, body for content)
         const postContext = extractPostFromFile(file);
         core.info(`Extracted post: "${postContext.title}"`);
 
@@ -116,12 +137,8 @@ async function run(): Promise<void> {
       core.setOutput("comments-generated", files.length.toString());
     }
   } catch (error) {
-    // Mark the action as failed with a clear error message
-    core.setFailed(
-      error instanceof Error ? error.message : String(error),
-    );
+    core.setFailed(error instanceof Error ? error.message : String(error));
   }
 }
 
-// Execute the action
 run();
