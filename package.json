@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
-    "giscus-bot": "dist/cli.js"
+    "giscus-bot": "bin/giscus-bot.js"
   },
   "scripts": {
     "build": "tsc",
