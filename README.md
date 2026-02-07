@@ -59,8 +59,10 @@ jobs:
           blog-url: ${{ github.event.inputs.url }}
 ```
 
-- **Push trigger**: reads the markdown file directly from the repo, no URL needed
-- **Manual trigger**: scrapes the live URL you provide
+- **Push trigger**: detects newly added markdown files in the commit and reads them directly from the checkout
+- **Manual trigger**: scrapes the live blog URL you provide
+- The action builds from source on each run (`npm ci && tsc`), so no pre-built artifacts are needed
+- `actions/checkout@v4` is required so the action can access your repo files (posts and config)
 
 ### Config File (optional)
 
