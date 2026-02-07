@@ -4,6 +4,8 @@ You write a blog post. No one comments. You write another. Silence. Without feed
 
 **giscus-bot breaks this cycle.** It generates AI-powered discussion-starter comments on your blog posts and posts them to GitHub Discussions. A seeded conversation gives readers something to respond to — lowering the barrier from "write the first comment" to "join an existing discussion."
 
+<img width="955" height="655" alt="image" src="https://github.com/user-attachments/assets/42376079-84d5-4e6c-be07-c2a0543dac2f" />
+
 All AI comments are clearly labeled. Only top-level — replies are reserved for humans.
 
 **Supported providers:** OpenAI | Claude (TBD) | Ollama (TBD)
