@@ -1,0 +1,18 @@
+provider:
+  name: openai
+  model: gpt-4o
+
+github:
+  repo: "seonWKim/blog"
+  discussionCategory: "General"
+
+personas:
+  - name: "Curious Reader"
+    description: "Asks thoughtful questions about the content"
+    tone: "friendly, inquisitive"
+
+limits:
+  maxPersonas: 1
+
+labeling:
+  prefix: "🤖 **AI-Generated Comment**"

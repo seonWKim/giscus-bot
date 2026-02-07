@@ -125,8 +125,8 @@ export async function findDiscussion(
       nodes: Array<{ id: string; title: string; url: string }>;
     };
   }>(
-    `query($query: String!) {
-      search(query: $query, type: DISCUSSION, first: 5) {
+    `query($searchQuery: String!) {
+      search(query: $searchQuery, type: DISCUSSION, first: 5) {
         nodes {
           ... on Discussion {
             id
@@ -136,7 +136,7 @@ export async function findDiscussion(
         }
       }
     }`,
-    { query: searchQuery },
+    { searchQuery },
   );
 
   // Find an exact title match among the search results

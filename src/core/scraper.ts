@@ -10,6 +10,7 @@
  * need a full browser environment, just enough DOM to run Readability.
  */
 
+import { readFileSync } from "node:fs";
 import { Readability } from "@mozilla/readability";
 import { parseHTML } from "linkedom";
 import TurndownService from "turndown";
@@ -103,6 +104,59 @@ export async function extractPost(url: string): Promise<PostContext> {
     url,
     title: article.title || "Untitled",
     content: markdown,
+    excerpt,
+  };
+}
+
+/**
+ * Parse YAML front matter from a markdown file's raw content.
+ *
+ * Front matter is the YAML block between --- delimiters at the top of
+ * markdown files. We extract `title` from it. This is a lightweight
+ * parser — we only need the title, so we avoid pulling in a full YAML lib.
+ */
+function parseFrontMatter(raw: string): { title: string; body: string } {
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  if (!match) {
+    return { title: "Untitled", body: raw };
+  }
+
+  const [, frontMatter, body] = match;
+
+  // Extract title from the YAML front matter.
+  // Handles both quoted ("My Title") and unquoted (My Title) values.
+  const titleMatch = frontMatter.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+  const title = titleMatch?.[1] ?? "Untitled";
+
+  return { title, body };
+}
+
+/**
+ * Extract post content directly from a local markdown file.
+ *
+ * Used by the GitHub Action's push-trigger mode: when a new post is pushed,
+ * we read the file from the checkout instead of scraping a live URL.
+ * This avoids needing to know the blog's URL structure entirely.
+ *
+ * @param filePath - Path to the markdown file (relative or absolute).
+ * @returns A PostContext built from the file's front matter and body.
+ */
+export function extractPostFromFile(filePath: string): PostContext {
+  const raw = readFileSync(filePath, "utf-8");
+  const { title, body } = parseFrontMatter(raw);
+
+  // Truncate if content is too long (same as URL scraping path)
+  let content = body.trim();
+  if (content.length > MAX_CONTENT_LENGTH) {
+    content = content.slice(0, MAX_CONTENT_LENGTH) + "\n\n[Content truncated]";
+  }
+
+  const excerpt = content.slice(0, EXCERPT_LENGTH);
+
+  return {
+    url: filePath, // no live URL available; use the file path as identifier
+    title,
+    content,
     excerpt,
   };
 }

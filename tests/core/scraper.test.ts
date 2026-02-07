@@ -7,7 +7,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { extractPost } from "../../src/core/scraper.js";
+import { writeFileSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
+import { extractPost, extractPostFromFile } from "../../src/core/scraper.js";
 
 describe("extractPost", () => {
   beforeEach(() => {
@@ -109,5 +111,85 @@ describe("extractPost", () => {
     expect(result.content).toContain("[Content truncated]");
     // Total length should be approximately MAX_CONTENT_LENGTH + truncation marker
     expect(result.content.length).toBeLessThan(16_000);
+  });
+});
+
+// Path for temp test files
+const TEST_FILE_PATH = join(import.meta.dirname, "test-post.md");
+
+describe("extractPostFromFile", () => {
+  afterEach(() => {
+    try {
+      unlinkSync(TEST_FILE_PATH);
+    } catch {
+      // Ignore if file doesn't exist
+    }
+  });
+
+  it("should extract title from YAML front matter and body content", () => {
+    writeFileSync(
+      TEST_FILE_PATH,
+      `---
+title: "MySQL MVCC and Isolation Levels"
+date: 2026-01-18
+categories: [ programming ]
+---
+
+# Introduction
+
+This post explains how MySQL implements MVCC.
+
+## Section One
+
+InnoDB uses undo logs to maintain multiple versions of rows.
+`,
+    );
+
+    const result = extractPostFromFile(TEST_FILE_PATH);
+
+    expect(result.title).toBe("MySQL MVCC and Isolation Levels");
+    expect(result.content).toContain("MVCC");
+    expect(result.content).toContain("undo logs");
+    // Front matter YAML should NOT appear in the content
+    expect(result.content).not.toContain("categories");
+  });
+
+  it("should handle unquoted titles in front matter", () => {
+    writeFileSync(
+      TEST_FILE_PATH,
+      `---
+title: My Unquoted Title
+date: 2026-01-01
+---
+
+Some content here.
+`,
+    );
+
+    const result = extractPostFromFile(TEST_FILE_PATH);
+    expect(result.title).toBe("My Unquoted Title");
+  });
+
+  it("should default to 'Untitled' when no front matter exists", () => {
+    writeFileSync(TEST_FILE_PATH, "# Just a heading\n\nSome content.");
+
+    const result = extractPostFromFile(TEST_FILE_PATH);
+    expect(result.title).toBe("Untitled");
+    expect(result.content).toContain("Just a heading");
+  });
+
+  it("should use the file path as the url field", () => {
+    writeFileSync(
+      TEST_FILE_PATH,
+      `---
+title: Test
+---
+
+Content.
+`,
+    );
+
+    const result = extractPostFromFile(TEST_FILE_PATH);
+    expect(result.url).toBe(TEST_FILE_PATH);
   });
 });

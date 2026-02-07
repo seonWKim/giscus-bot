@@ -48,20 +48,26 @@ function formatComment(
 /**
  * Run the full comment generation pipeline for a blog post.
  *
- * @param url - The blog post URL to generate comments for.
+ * Accepts either a URL (scrapes the live page) or a pre-built PostContext
+ * (e.g., from reading a local markdown file in the push-trigger path).
+ *
+ * @param urlOrContext - A blog post URL string, or a PostContext object.
  * @param config - The full giscus-bot configuration.
  * @param provider - The AI provider to use for generating comments.
  * @param options.dryRun - If true, generate comments but don't post to GitHub.
  * @returns Results including the generated comments and discussion URL.
  */
 export async function generate(
-  url: string,
+  urlOrContext: string | PostContext,
   config: GiscusBotConfig,
   provider: AIProvider,
   options: { dryRun?: boolean } = {},
 ): Promise<GenerateResult> {
-  // Step 1: Scrape the blog post content
-  const postContext: PostContext = await extractPost(url);
+  // Step 1: Get the post content — either scrape the URL or use the provided context
+  const postContext: PostContext =
+    typeof urlOrContext === "string"
+      ? await extractPost(urlOrContext)
+      : urlOrContext;
 
   // Step 2: Select personas (cap at maxPersonas from config)
   // If the user defines 5 personas but maxPersonas is 2, only use the first 2
@@ -101,7 +107,7 @@ export async function generate(
     }
 
     // Create or find the discussion for this blog post
-    const discussionBody = `Discussion for: [${postContext.title}](${url})`;
+    const discussionBody = `Discussion for: ${postContext.title}`;
     const discussion = await publisher.findOrCreateDiscussion(
       owner,
       repo,
@@ -120,7 +126,7 @@ export async function generate(
 
   return {
     postTitle: postContext.title,
-    postUrl: url,
+    postUrl: postContext.url,
     discussionUrl,
     comments,
   };

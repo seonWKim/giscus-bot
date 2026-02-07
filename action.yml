@@ -1,13 +1,13 @@
 # GitHub Action metadata for giscus-bot.
 #
-# This action can be triggered two ways:
-#   1. Manually via workflow_dispatch (provide a blog-url)
-#   2. Automatically on push (detects new markdown files in content directories)
+# Two trigger modes:
+#   1. Manual (workflow_dispatch): provide a blog-url to scrape
+#   2. Auto (push): detects new markdown files, reads them directly from the repo
 #
-# Example workflow usage:
+# Example workflow:
 #   - uses: your-org/giscus-bot@main
 #     with:
-#       github-token: ${{ secrets.GITHUB_TOKEN }}
+#       github-token: ${{ secrets.DISCUSSIONS_TOKEN }}
 #       provider: openai
 #       api-key: ${{ secrets.OPENAI_API_KEY }}
 #       blog-url: https://myblog.com/new-post
@@ -31,9 +31,6 @@ inputs:
     default: "gpt-4o"
   blog-url:
     description: "Blog post URL (for manual trigger via workflow_dispatch)"
-    required: false
-  site-url:
-    description: "Blog site base URL (overrides config site.url, used for push-trigger URL construction)"
     required: false
   config-path:
     description: "Path to giscus-bot config file"

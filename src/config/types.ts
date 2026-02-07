@@ -22,27 +22,6 @@ export interface GithubConfig {
   discussionCategory: string;
 }
 
-/**
- * Site configuration — needed for auto-trigger mode to convert
- * file paths (e.g., _posts/2024-01-01-my-post.md) into live URLs.
- */
-export interface SiteConfig {
-  /** Base URL of the blog (e.g., "https://myblog.com") — no trailing slash */
-  url: string;
-  /**
-   * Blog framework used — determines how filenames map to URLs.
-   *   - jekyll: _posts/YYYY-MM-DD-slug.md → /YYYY/MM/DD/slug/
-   *   - hugo:   content/posts/slug.md     → /posts/slug/
-   *   - custom: use pathPattern to define the mapping
-   */
-  framework: "jekyll" | "hugo" | "custom";
-  /**
-   * Custom URL pattern for "custom" framework. Uses placeholders:
-   *   {slug}, {year}, {month}, {day}, {filename}
-   * Example: "/blog/{year}/{slug}/"
-   */
-  pathPattern?: string;
-}
 
 /**
  * A persona defines the AI's "character" when generating a comment.
@@ -73,8 +52,6 @@ export interface LabelingConfig {
 export interface GiscusBotConfig {
   provider: ProviderConfig;
   github: GithubConfig;
-  /** Site config — required for push-trigger URL construction */
-  site?: SiteConfig;
   personas: PersonaConfig[];
   limits: LimitsConfig;
   labeling: LabelingConfig;

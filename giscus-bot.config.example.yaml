@@ -4,14 +4,7 @@ provider:
 
 github:
   repo: "user/blog"
-  discussionCategory: "Blog Comments"
-
-# Site config — required for push-trigger mode (auto-detecting new posts).
-# Not needed if you only use manual workflow_dispatch triggers.
-site:
-  url: "https://myblog.com"              # your blog's base URL (no trailing slash)
-  framework: jekyll                       # jekyll | hugo | custom
-  # pathPattern: "/blog/{year}/{slug}/"   # only needed for framework: custom
+  discussionCategory: "General"          # or any category in your repo
 
 personas:
   - name: "Curious Reader"

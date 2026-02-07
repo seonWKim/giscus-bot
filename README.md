@@ -103,50 +103,28 @@ giscus-bot generate https://myblog.com/post --config ./my-config.yaml
 
 giscus-bot can run as a GitHub Action with two trigger modes: **manual** (paste a URL) and **automatic** (detect new posts on push).
 
-### Manual trigger only
+### How the two modes work
 
-If you just want to run it on-demand from the Actions tab:
+| Mode | Trigger | What happens |
+|------|---------|--------------|
+| **Manual** | `workflow_dispatch` | You paste a blog post URL. The action scrapes the live page and generates comments. |
+| **Auto** | `push` | The action detects new/modified `.md` files, reads them directly from the repo, and generates comments from the file content. No URL needed. |
 
-```yaml
-# .github/workflows/giscus-bot.yml
-name: Generate Discussion Comments
-
-on:
-  workflow_dispatch:
-    inputs:
-      url:
-        description: "Blog post URL"
-        required: true
-        type: string
-
-jobs:
-  comment:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: youruser/giscus-bot@main
-        with:
-          github-token: ${{ secrets.DISCUSSIONS_TOKEN }}
-          provider: openai
-          api-key: ${{ secrets.OPENAI_API_KEY }}
-          blog-url: ${{ github.event.inputs.url }}
-```
-
-### Auto-trigger on push (+ manual fallback)
-
-For automatic comment generation when new posts are pushed:
+### Workflow setup (both modes)
 
 ```yaml
 # .github/workflows/giscus-bot.yml
 name: Generate Discussion Comments
 
 on:
+  # Auto-trigger: runs when new posts are pushed
   push:
     paths:
       - "_posts/**"          # Jekyll
       # - "content/posts/**" # Hugo
+      # - "src/posts/**"     # Custom
 
+  # Manual trigger: paste a URL from the Actions tab
   workflow_dispatch:
     inputs:
       url:
@@ -162,19 +140,28 @@ jobs:
 
       - uses: youruser/giscus-bot@main
         with:
-          github-token: ${{ secrets.DISCUSSIONS_TOKEN }}
+          github-token: ${{ secrets.GISCUS_BOT_GITHUB_TOKEN }}
           provider: openai
           api-key: ${{ secrets.OPENAI_API_KEY }}
           blog-url: ${{ github.event.inputs.url }}
 ```
 
-Auto-trigger mode requires a `site` section in your config so that file paths can be mapped to live URLs:
+**How it works:**
+- On `push`: `blog-url` is empty, so the action reads the pushed markdown files directly from the checkout. It extracts the title from the file's front matter and uses the markdown body as content. No URL mapping or framework config needed.
+- On `workflow_dispatch`: `blog-url` is set, so the action scrapes the live page at that URL.
+
+### Manual trigger only
+
+If you don't want auto-trigger, just remove the `push` section:
 
 ```yaml
-# Add this to giscus-bot.config.yaml
-site:
-  url: "https://yourblog.com"
-  framework: jekyll   # jekyll | hugo | custom
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Blog post URL"
+        required: true
+        type: string
 ```
 
 ### Action inputs
@@ -186,75 +173,14 @@ site:
 | `api-key` | Yes | | API key for the AI provider |
 | `model` | No | `gpt-4o` | AI model to use |
 | `blog-url` | No | | Blog post URL (for manual trigger) |
-| `site-url` | No | | Override `site.url` from config |
 | `config-path` | No | `giscus-bot.config.yaml` | Path to config file |
 
-## Framework Setup Guides
+### Repo secrets
 
-### Jekyll
+Add these in your repo's Settings > Secrets and variables > Actions:
 
-Jekyll posts follow the `_posts/YYYY-MM-DD-slug.md` convention. giscus-bot maps these to `/YYYY/MM/DD/slug/` URLs automatically.
-
-```yaml
-# giscus-bot.config.yaml
-site:
-  url: "https://yourblog.com"
-  framework: jekyll
-```
-
-```yaml
-# .github/workflows/giscus-bot.yml
-on:
-  push:
-    paths: ["_posts/**"]
-  workflow_dispatch:
-    inputs:
-      url:
-        description: "Blog post URL"
-        required: true
-        type: string
-```
-
-File mapping example:
-```
-_posts/2024-06-15-hello-world.md → https://yourblog.com/2024/06/15/hello-world/
-```
-
-### Hugo
-
-Hugo content lives under `content/`. giscus-bot strips the `content/` prefix and the file extension.
-
-```yaml
-# giscus-bot.config.yaml
-site:
-  url: "https://yourblog.com"
-  framework: hugo
-```
-
-```yaml
-on:
-  push:
-    paths: ["content/posts/**"]
-```
-
-File mapping example:
-```
-content/posts/hello-world.md → https://yourblog.com/posts/hello-world/
-```
-
-### Custom framework
-
-For other static site generators, use a path pattern with placeholders:
-
-```yaml
-# giscus-bot.config.yaml
-site:
-  url: "https://yourblog.com"
-  framework: custom
-  pathPattern: "/blog/{year}/{slug}/"
-```
-
-Available placeholders: `{slug}`, `{filename}`, `{year}`, `{month}`, `{day}`
+- `DISCUSSIONS_TOKEN` — a GitHub PAT with `discussions:write` scope
+- `OPENAI_API_KEY` — your OpenAI key (or `ANTHROPIC_API_KEY` for Claude)
 
 ## Configuration Reference
 
@@ -271,14 +197,6 @@ Available placeholders: `{slug}`, `{filename}`, `{year}`, `{month}`, `{day}`
 |-------|------|-------------|
 | `repo` | string | GitHub repo in `owner/repo` format |
 | `discussionCategory` | string | Name of the Discussions category to post in |
-
-### `site` (optional)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `url` | string | Blog base URL, no trailing slash |
-| `framework` | `jekyll` \| `hugo` \| `custom` | Determines how file paths map to URLs |
-| `pathPattern` | string | URL pattern for `custom` framework |
 
 ### `personas`
 
@@ -321,7 +239,7 @@ provider:
 
 ## How It Works
 
-1. **Scrape** the blog post URL using [Readability](https://github.com/mozilla/readability) (the same engine behind Firefox Reader View) and convert to markdown
+1. **Extract** blog post content — either scrape a live URL (manual trigger / CLI) or read a markdown file directly (push trigger)
 2. **Generate** comments by sending the post content to the configured AI provider, once per persona
 3. **Publish** comments to a GitHub Discussion (creating one if it doesn't exist), with each comment labeled as AI-generated
 
