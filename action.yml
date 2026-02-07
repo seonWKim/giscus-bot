@@ -3,6 +3,8 @@
 # Two trigger modes:
 #   1. Manual (workflow_dispatch): provide a blog-url to scrape
 #   2. Auto (push): detects new markdown files, reads them directly from the repo
+#
+# Uses a composite action that builds from source on each run.
 
 name: "giscus-bot"
 description: "Generate AI discussion-starter comments for blog posts on GitHub Discussions"
@@ -13,7 +15,8 @@ inputs:
     required: true
   provider:
     description: "AI provider to use (openai|claude|ollama)"
-    required: true
+    required: false
+    default: "openai"
   api-key:
     description: "API key for the AI provider"
     required: true
@@ -30,5 +33,29 @@ inputs:
     default: "giscus-bot.config.yaml"
 
 runs:
-  using: "node20"
-  main: "action-bundle/index.js"
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Install and build
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        npm ci
+        npx tsc
+
+    - name: Run giscus-bot
+      shell: bash
+      env:
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_PROVIDER: ${{ inputs.provider }}
+        INPUT_API_KEY: ${{ inputs.api-key }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_BLOG_URL: ${{ inputs.blog-url }}
+        INPUT_CONFIG_PATH: ${{ inputs.config-path }}
+        GITHUB_EVENT_PATH: ${{ github.event_path }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: node ${{ github.action_path }}/dist/action.js

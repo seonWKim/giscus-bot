@@ -9,12 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "tsc --noEmit",
-    "bundle:action": "tsc && ncc build dist/action.js -o action-bundle",
-    "prepare": "git config core.hooksPath .githooks"
+    "lint": "tsc --noEmit"
   },
   "keywords": [
     "giscus",
@@ -36,11 +32,8 @@
     "yaml": "^2.7.0"
   },
   "devDependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
     "@types/node": "^22.13.1",
     "@types/turndown": "^5.0.5",
-    "@vercel/ncc": "^0.38.3",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }
