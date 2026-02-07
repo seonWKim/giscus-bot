@@ -1,8 +1,10 @@
 # giscus-bot
 
-AI-powered discussion starter for blog posts. Generates thoughtful comments using AI personas and posts them to GitHub Discussions.
+You write a blog post. No one comments. You write another. Silence. Without feedback, you don't know what resonates, what confuses, or whether anyone even read it. You stop writing.
 
-Most blog posts get zero comments. giscus-bot seeds conversations so readers have something to engage with. Comments are clearly labeled as AI-generated, and only top-level — replies are reserved for humans.
+**giscus-bot breaks this cycle.** It generates AI-powered discussion-starter comments on your blog posts and posts them to GitHub Discussions. A seeded conversation gives readers something to respond to — lowering the barrier from "write the first comment" to "join an existing discussion."
+
+All AI comments are clearly labeled. Only top-level — replies are reserved for humans.
 
 **Supported providers:** OpenAI | Claude (TBD) | Ollama (TBD)
 
