@@ -4,6 +4,14 @@ You write a blog post. No one comments. You write another. Silence. Without feed
 
 **giscus-bot breaks this cycle.** It generates AI-powered discussion-starter comments on your blog posts and posts them to GitHub Discussions. A seeded conversation gives readers something to respond to — lowering the barrier from "write the first comment" to "join an existing discussion."
 
+## Relationship to giscus
+
+**[giscus](https://giscus.app)** is a comments system widget that lets website visitors leave comments and reactions on your website via GitHub Discussions. It's the UI component you embed in your blog to display and collect comments.
+
+**giscus-bot** (this project) is a complementary tool that generates AI-powered discussion starter comments to seed conversations on your blog posts. Think of it as an automated first commenter that helps kickstart engagement.
+
+**Together**: giscus displays the comments on your blog, while giscus-bot creates initial AI-generated comments to encourage real human discussion. You don't need giscus to use giscus-bot (it works with GitHub Discussions directly), but they work great together for maximum engagement.
+
 <img width="955" height="655" alt="image" src="https://github.com/user-attachments/assets/42376079-84d5-4e6c-be07-c2a0543dac2f" />
 
 All AI comments are clearly labeled. Only top-level — replies are reserved for humans.
